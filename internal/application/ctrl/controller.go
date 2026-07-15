@@ -68,6 +68,7 @@ type Controller interface {
 	// Numscript library operations
 	GetNumscript(ctx context.Context, ledger, name string, version string) (*commonpb.NumscriptInfo, error)
 	ListNumscripts(ctx context.Context, ledger string) ([]*commonpb.NumscriptInfo, error)
+	ListNumscriptVersions(ctx context.Context, ledger, name string) (string, []*commonpb.NumscriptVersionEntry, error)
 
 	// Cluster-wide config operations (read-only)
 	GetChapterSchedule(ctx context.Context) (string, error)

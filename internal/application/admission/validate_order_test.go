@@ -968,14 +968,14 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "postgres mirror without IAM auth",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{Dsn: "postgres://user:pass@host:5432/db"},
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{Dsn: "postgres://user:pass@host:5432/db"},
 			}},
 		},
 		{
 			name: "postgres mirror with IAM auth and region",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 					Dsn:        "postgres://iam-user@host:5432/db?sslmode=require",
 					AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: "eu-west-1"},
 				},
@@ -983,8 +983,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "postgres mirror with IAM auth missing region rejected at admission",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 					Dsn:        "postgres://iam-user@host:5432/db?sslmode=require",
 					AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: ""},
 				},
@@ -993,8 +993,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "postgres mirror with IAM auth on non-TLS sslmode rejected at admission",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 					Dsn:        "postgres://iam-user@host:5432/db?sslmode=disable",
 					AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: "eu-west-1"},
 				},
@@ -1003,8 +1003,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "postgres mirror with IAM auth on unset sslmode rejected at admission",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 					Dsn:        "postgres://iam-user@host:5432/db",
 					AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: "eu-west-1"},
 				},
@@ -1013,8 +1013,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "postgres mirror with IAM auth on libpq keyword=value DSN rejected at admission",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-				Postgres: &commonpb.PostgresMirrorSourceConfig{
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+				LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 					Dsn:        `host=db.example.com user=iam-user dbname=ledger sslmode=require`,
 					AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: "eu-west-1"},
 				},
@@ -1023,15 +1023,15 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		},
 		{
 			name: "http mirror source unaffected",
-			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Http{
-				Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+			src: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+				LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 			}},
 		},
 		{
 			name: "valid rewrite rules accepted",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					anyRuleRewriteAddress(":worker:\\d+", ""),
@@ -1042,8 +1042,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		{
 			name: "unset scope rejected at admission",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					{Stop: true},
@@ -1054,8 +1054,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		{
 			name: "invalid cel expression rejected at admission",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					anyRuleWithMatch(`this is not valid cel`),
@@ -1066,8 +1066,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		{
 			name: "non-boolean match rejected at admission",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					anyRuleWithMatch(`"a string"`),
@@ -1078,8 +1078,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		{
 			name: "invalid literal regex pattern rejected at admission",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					anyRuleRewriteAddress("(", ""),
@@ -1090,8 +1090,8 @@ func TestValidateOrder_MirrorIAMRegion(t *testing.T) {
 		{
 			name: "invalid literal metadata key rejected at admission",
 			src: &commonpb.MirrorSourceConfig{
-				Type: &commonpb.MirrorSourceConfig_Http{
-					Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
+				Type: &commonpb.MirrorSourceConfig_LedgerV2Http{
+					LedgerV2Http: &commonpb.HttpMirrorSourceConfig{BaseUrl: "http://v2:3068"},
 				},
 				RewriteRules: []*commonpb.MirrorRewriteRule{
 					createdRuleSetMetadata("", "bad key", "v", false),
@@ -1147,8 +1147,8 @@ func TestValidateOrder_MirrorIAMRejectsPGSSLMODEBypass(t *testing.T) {
 				Payload: &raftcmdpb.LedgerScopedOrder_CreateLedger{
 					CreateLedger: &raftcmdpb.CreateLedgerOrder{
 						Mode: commonpb.LedgerMode_LEDGER_MODE_MIRROR,
-						MirrorSource: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_Postgres{
-							Postgres: &commonpb.PostgresMirrorSourceConfig{
+						MirrorSource: &commonpb.MirrorSourceConfig{Type: &commonpb.MirrorSourceConfig_LedgerV2Database{
+							LedgerV2Database: &commonpb.PostgresMirrorSourceConfig{
 								Dsn:        "postgres://iam-user@host:5432/db",
 								AwsIamAuth: &commonpb.PostgresAwsIamAuth{Region: "eu-west-1"},
 							},

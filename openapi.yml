@@ -4198,10 +4198,10 @@ components:
         type:
           type: string
           enum:
-            - http
-            - postgres
-          default: http
-          description: Source type (defaults to "http" if omitted)
+            - ledgerV2Http
+            - ledgerV2Database
+          default: ledgerV2Http
+          description: Source type (defaults to "ledgerV2Http" if omitted)
         baseUrl:
           type: string
           description: Base URL of the v2 API (required for HTTP source)
